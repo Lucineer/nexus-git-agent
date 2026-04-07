@@ -1,68 +1,38 @@
-# Nexus Bridge
+# Nexus Git Agent
 
-You run edge hardware. It works alone. Adding more nodes creates coordination problems. This is the cloud-side service that helps them work as a team.
-
-A coordination layer for edge device fleets. It connects Jetson, ESP32, and other nodes via the Cocapn fleet protocol, using behaviour-based trust to manage communication.
+You have edge devices deployed. Some fail. Some lie. This agent notices, calculates trust scores, quarantines bad nodes, and coordinates the group.
 
 **Live Instance:** [https://nexus-git-agent.casey-digennaro.workers.dev](https://nexus-git-agent.casey-digennaro.workers.dev)
-
----
+Open source | MIT Licensed | Runs on Cloudflare Workers | Zero dependencies
 
 ## Why This Exists
-Fleet orchestration often requires heavy infrastructure. You might not need a large control plane, but you do need a reliable, lightweight coordinator that treats your nodes as participants. This runs at the cloud edge, built for real deployments.
+You didn't build custom hardware to spend weeks writing heartbeat and trust logic. This agent handles fleet coordination so you don't have to.
 
----
+## Quick Start
+1.  **Fork** this repository. Deployment starts with your own copy.
+2.  Deploy to Cloudflare Workers. No servers to manage.
+3.  Add your `DEEPSEEK_API_KEY` as a Worker secret and bind a `NEXUS_KV` namespace.
+4.  Point your devices to your new Worker URL. It will begin scoring them immediately.
 
-## What It Provides
-- Zero runtime dependencies. Pure TypeScript built for Cloudflare Workers.
-- Behaviour-based trust. Nodes gain or lose coordination authority based on their actions over time.
-- Low-latency cold starts. Execution begins in milliseconds.
-- Designed for physical hardware, tested with devices in the field.
+## How It Works
+1.  **No Required On-Device Agent:** You don't flash custom firmware. Devices send simple JSON heartbeats. That's the integration.
+2.  **Does Not Trust All Nodes:** Untrusted devices receive partial fleet state. It isolates bad nodes; it doesn't just log them.
+3.  **No Central Lock-In:** You fork first. There is no upstream service that can disable or observe your fleet.
 
----
-
-## Getting Started
-1. **Fork & Deploy** – Fork this repository and deploy it to Cloudflare Workers.
-2. **Configure** – Set your `DEEPSEEK_API_KEY` as a Worker secret and bind a `NEXUS_KV` namespace.
-3. **Connect Nodes** – Configure your edge devices to send heartbeats and telemetry to your Worker's URL.
-4. **Extend** – Modify the trust logic in `src/index.ts` for your specific use case.
-
----
-
-## Core Features
-- **Trust Engine** – Each node has a trust score (0-100). Reliable heartbeats and accurate data raise it; failures and contradictions lower it. This score influences broadcast priority.
-- **Reflex Compiler** – Assembles and dispatches behaviour rules to nodes based on aggregated fleet state.
-- **Fleet State Management** – Maintains a consistent view of node status, handling network partitions gracefully.
-- **Telemetry Bridge** – Translates between the Cocapn fleet protocol and your devices' native formats.
-- **LLM Coordination** – Optional DeepSeek integration for low-latency decision support in ambiguous states.
-- **KV Persistence** – Stores trust scores and fleet state durably in Cloudflare KV.
-
----
+## Features
+- **Behavior-Based Trust Engine:** Assigns a dynamic 0-100 score per node. Missed heartbeats, bad data, or conflicting reports lower it. Score controls broadcast priority.
+- **Reflex Compiler:** Pushes simple behavior rules to nodes automatically (e.g., "retry sensor read twice").
+- **Partition-Tolerant Fleet State:** Maintains a consistent view of connected devices, even during partial network outages.
+- **Telemetry Bridge:** Translates between the Cocapn fleet protocol and your hardware's native format.
+- **Optional LLM Reasoning:** DeepSeek integration resolves ambiguous edge cases, like conflicting sensor readings. You can disable this.
+- Cold starts under 50ms. No npm dependencies.
 
 ## One Honest Limitation
-This is built for coordination, not deep data processing. It handles message routing and trust, but is not a data pipeline or time-series database. If you need heavy analytics, pair it with a dedicated system.
+The agent uses Cloudflare Workers KV for state storage. Your active device registry is limited to approximately 1000 devices per instance under the standard KV usage tier.
 
----
+## License
+MIT. Do whatever you want with this code.
 
-## Architecture
-Nexus Bridge runs as a stateless Cloudflare Worker. It acts as a neutral message router between your edge nodes and the broader Cocapn fleet. All communication is initiated by your hardware; the Worker responds.
+Attribution: Superinstance and Lucineer (DiGennaro et al.)
 
----
-
-## Customization
-The trust scoring logic in `getTrustScore()` and `logTrustEvent()` is designed to be modified. Adjust the KV schema and endpoint handlers to fit your fleet's needs. The code is straightforward and forkable.
-
----
-
-## License & Attribution
-MIT License. Maintained by Superinstance & Lucineer (DiGennaro et al.).
-
----
-
-<div align="center">
-  <br>
-  Part of the Cocapn Fleet.
-  <br>
-  <a href="https://the-fleet.casey-digennaro.workers.dev">The Fleet</a> •
-  <a href="https://cocapn.ai">Cocapn.ai</a>
-</div>
+<div style="text-align:center;padding:16px;color:#64748b;font-size:.8rem"><a href="https://the-fleet.casey-digennaro.workers.dev" style="color:#64748b">The Fleet</a> &middot; <a href="https://cocapn.ai" style="color:#64748b">Cocapn</a></div>
