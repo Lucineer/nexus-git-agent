@@ -1,6 +1,8 @@
 // Nexus Git Agent — cloud-side brain for edge intelligence fleet
 // Bridges Jetson/ESP32 edge nodes with cloud coordination via the Cocapn fleet protocol
 
+const CSP = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*; frame-ancestors 'none';";
+
 interface Env {
   NEXUS_KV: KVNamespace;
   DEEPSEEK_API_KEY: string;
@@ -197,7 +199,7 @@ export default {
       + '</div>'
       + '<div class="fleet"><a href="https://the-fleet.casey-digennaro.workers.dev">&#x2693; The Fleet</a> &middot; <a href="https://cocapn.ai">Cocapn</a> &middot; <a href="https://github.com/Lucineer/nexus-runtime">Nexus Runtime</a></div>'
       + '</body></html>',
-      { headers: { 'Content-Type': 'text/html;charset=utf-8' } },
+      { headers: { 'Content-Type': 'text/html', 'Content-Security-Policy': CSP;charset=utf-8' } },
     );
   },
 };
